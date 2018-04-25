@@ -1,60 +1,105 @@
 package com.start;
 
 import com.logger.*;
+import com.robot.Robot;
 
 import lejos.nxt.Button;
+import lejos.nxt.LCD;
+import lejos.nxt.Sound;
 import lejos.robotics.RegulatedMotor;
 import lejos.util.PilotProps;
 
-public class LineFollwer {
+public class LineFollwer
+{
 
-	public static void main(String[] args) throws Exception
+	public static void main(String[] args)
+	{
+		try 
+		{	//https://www.youtube.com/watch?v=ODAGVeeDagk
+			LCD.clear();
+			LCD.drawString("Hello", 0, 1);
+			Sound.beep();
+			LCD.drawString("continue [ENTER] ?", 0, 3);
+			Button.ENTER.waitForPress();
+
+			Logger.getInstance().logDebug("main - start");
+			Robot rob = new Robot();
+//			calibrateColors(rob);
+			rob.startTrackLine_ver2();
+			
+			// leftMotor.setSpeed(900);
+			// leftMotor.forward();
+			// while(!Button.ENTER.isDown())
+			// {
+			//
+			// }
+			// leftMotor.stop();
+			// rightMotor.setSpeed(900);
+			// rightMotor.forward();
+			// while(!Button.ENTER.isDown())
+			// {
+			//
+			// }
+			// rightMotor.stop();
+
+		}
+		catch(Exception e)
+		{
+			Logger.getInstance().logDebug("main - end get exception: " + e.getMessage());
+		}
+		finally
+		{
+			Logger.getInstance().write();
+		}	
+	}
+	
+	private static void waitForEnter()
+	{
+		try
+		{
+			Sound.beep();
+			Button.ENTER.waitForPressAndRelease();
+		}
+		catch(Exception ex)
+		{
+		}
+	}
+
+	
+	public static void calibrateColors(Robot rob )
 	{
 		
-		PilotProps pp = new PilotProps();
-    	pp.loadPersistentValues();
-    	float wheelDiameter = Float.parseFloat(pp.getProperty(PilotProps.KEY_WHEELDIAMETER, "4.96"));
-    	float trackWidth = Float.parseFloat(pp.getProperty(PilotProps.KEY_TRACKWIDTH, "13.0"));
-    	RegulatedMotor leftMotor = PilotProps.getMotor(pp.getProperty(PilotProps.KEY_LEFTMOTOR, "B"));
-    	RegulatedMotor rightMotor = PilotProps.getMotor(pp.getProperty(PilotProps.KEY_RIGHTMOTOR, "C"));
-
-    	
-//		leftMotor.setSpeed(900);
-//		leftMotor.forward();
-//		while(!Button.ENTER.isDown())
-//		{
-//					
-//		}
-//		leftMotor.stop();
-//		rightMotor.setSpeed(900);
-//		rightMotor.forward();
-//		while(!Button.ENTER.isDown())
-//		{
-//					
-//		}
-//		rightMotor.stop();	
-    	
-    	
-
-
+		LCD.clear();
+		LCD.drawString("Calibrate colors", 0, 0);
 		
+		LCD.drawString("White [ENTER]", 0, 2);
+		waitForEnter();
+		int white = rob.getLightSensorVal();
+		Sound.beepSequenceUp();
 		
-    	Logger.getInstance().logDebug("ffffffffffff");
-    	Logger.getInstance().logDebug("ggg4");
-    	Logger.getInstance().logDebug("ggg5");
-    	Logger.getInstance().logDebug("ggg6");
+		LCD.drawString("Black [ENTER]", 0, 3);
+		waitForEnter();
+		int black =  rob.getLightSensorVal();
+		Sound.beepSequenceUp();
 
-    	Logger.getInstance().logDebug("ggg7");
-    	Logger.getInstance().logDebug("gfggs" , 34);
-    	Logger.getInstance().logDebug("gfgfgfggfgfg" , 34);
-    	Logger.getInstance().logDebug("gfggs" , 34);
-    	Logger.getInstance().logDebug("gfggs" , 34);
-    	Logger.getInstance().logDebug("44444444444444444" , 34);
-    	Logger.getInstance().logDebug("fffffffffffffffffffffffffffff3442");
-    	Logger.getInstance().logDebug("fffffffffffffffffffffdsfdf");
-    	Logger.getInstance().logDebug("fgrs" , 4563111);
-    	
-    	Logger.getInstance().write();
+		Sound.beep();
+		LCD.drawString("Green [ENTER]", 0, 4);
+		waitForEnter();
+		int green = rob.getLightSensorVal();
+		Sound.beepSequenceUp();
+
+		// Listing colors by decreasing reflective values
+		LCD.clear();
+		LCD.drawString("Color codes", 0, 0);
+		LCD.drawString("white = " + white, 0, 2);
+		LCD.drawString("green = " + green, 0, 3);
+		LCD.drawString("black = " + black, 0, 4);
+		waitForEnter();
+		
+	//	cut_black = (black + green) / 2.0f;
+	//	cut_green = (green + white) / 2.0f;
+	//	cut_bw = (black + white) / 2.0f;
 	}
+
 
 }
