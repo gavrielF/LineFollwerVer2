@@ -15,20 +15,23 @@ import lejos.nxt.LCD;
 
 public final class Logger
 {
-	private static Logger instance = null;
-	
-	private List<String> m_list = new ArrayList<String>();
-	
-	private Logger(){}
+	private static Logger	instance	= null;
 
-	public static synchronized Logger getInstance() 
+	private List<String>	m_list		= new ArrayList<String>();
+
+	private Logger()
 	{
-		if(instance == null){
-            instance = new Logger();
-        }
-        return instance;
 	}
-	
+
+	public static synchronized Logger getInstance()
+	{
+		if (instance == null)
+		{
+			instance = new Logger();
+		}
+		return instance;
+	}
+
 	public void writeToFile()
 
 	{
@@ -76,52 +79,48 @@ public final class Logger
 
 	public void write()
 	{
-		File file = new File("logFile.txt");		
-		
-		try (FileOutputStream fop = new FileOutputStream(file)) 
+		File file = new File("logFile.txt");
+
+		try (FileOutputStream fop = new FileOutputStream(file))
 		{
 
 			// if file doesn't exists, then create it
-			if (!file.exists()) {
+			if (!file.exists())
+			{
 				file.createNewFile();
 			}
-			
+
 			byte[] contentInBytes = "First Message \r\n".getBytes();
 			fop.write(contentInBytes);
-			
-			for (String item : m_list) {
+
+			for (String item : m_list)
+			{
 				contentInBytes = item.getBytes();
 				fop.write(contentInBytes);
 			}
-			
+
 			contentInBytes = "End Message \r\n".getBytes();
 			fop.write(contentInBytes);
-			
+
 			fop.flush();
 			fop.close();
-		
-		} 
-		catch (IOException e) 
-		{			
+
+		}
+		catch (IOException e)
+		{
 			LCD.clear();
 			LCD.drawString("cant make log file", 0, 0);
 		}
 	}
-	
+
 	public void logDebug(String msg)
 	{
 		m_list.add("Debug ---> " + msg + "\r\n");
 	}
-	
+
 	public void logDebug(String msg, int num)
 	{
 		m_list.add("Debug ---> msg: " + msg + " Num: " + num + "\r\n");
 	}
-	
-	
-	
-	
-	
-	
-	
+
 }
