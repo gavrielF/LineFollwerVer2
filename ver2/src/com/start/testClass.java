@@ -21,6 +21,7 @@ public class testClass
 	{
 		Stopwatch watch = new Stopwatch();
 		System.out.println("Testing Pilot...");
+		System.out.println("Testing watchTest...");
 		
 		watch.reset();	
 		Delay.msDelay(3000);
@@ -31,6 +32,7 @@ public class testClass
 		System.out.println(watch.elapsed() + "ms"); // 81, 22, 19, 21ms
 
 		watch.reset();
+		Delay.msDelay(5000);
 	}
 	
 	public static void calibrateColors(Integer waite, Integer black ,Integer middle)

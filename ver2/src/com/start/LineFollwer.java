@@ -28,7 +28,7 @@ public class LineFollwer
 			
 			testClass2 test = new testClass2();
 			// the code
-			while (Button.ESCAPE.isDown())
+			while (!Button.ESCAPE.isDown())
 			{
 				test.run();			
 			}
@@ -50,7 +50,7 @@ class testClass2
 { 
 	public void run() 
 	{
-		testClass.watchTest();
+		//testClass.watchTest();
 	}
 }
 	
