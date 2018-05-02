@@ -14,10 +14,21 @@ public class Motors
 		_leftMotor = new NXTMotor(MotorPort.C);
 	}
 	
-	public void setPower(float right, float left)
+	public void setPower(float left, float right)
 	{
-		_rightMotor.setPower((int)right);
-		_leftMotor.setPower((int)left);
+		if(left < 0)
+			_leftMotor.backward();
+		else
+			_leftMotor.forward();
+		
+		if(right < 0)
+			_leftMotor.backward();
+		else
+			_leftMotor.forward();
+		
+		
+		_leftMotor.setPower((int)(Math.abs(left)));
+		_rightMotor.setPower((int)(Math.abs(right)));
 
 	}
 

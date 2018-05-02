@@ -7,22 +7,21 @@ import lejos.nxt.UltrasonicSensor;
 public class Sensors
 {
 
-	private final LightSensor _lightSensor;
-	private final UltrasonicSensor _sonarSensor;
+	public static final LightSensor _lightSensor = new LightSensor(SensorPort.S1);
+	public static final UltrasonicSensor _sonarSensor = new UltrasonicSensor(SensorPort.S4);	
 	
-	public Sensors()
-	{
-		//SENSORS
-		_lightSensor = new LightSensor(SensorPort.S1);
-		_sonarSensor = new UltrasonicSensor(SensorPort.S4);	
-	}
 	
-	public int getLightSensorVal()
+	public static int getLightSensorVal()
 	{
 		return _lightSensor.readValue();
 	}
 	
-	public int getSonarVal()
+	public static int getLightSensorVal2()
+	{
+		return _lightSensor.getNormalizedLightValue();
+	}
+	
+	public static int getSonarVal()
 	{
 		return _sonarSensor.getDistance();
 	}
