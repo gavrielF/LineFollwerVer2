@@ -14,7 +14,7 @@ public class Motors
 		_leftMotor = new NXTMotor(MotorPort.C);
 	}
 	
-	public void setPower(float left, float right)
+	public void setPower(double left, double right)
 	{
 		if(left < 0)
 			_leftMotor.backward();

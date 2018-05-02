@@ -49,9 +49,10 @@ public class LineFollwer
 
 			//BaseController contruller = new lightMajer();
 //			BaseController contruller = new regular();
-			BaseController contruller = new regular2();
+		//	BaseController contruller = new regular2();
 		//	BaseController contruller = new regularImprove();
 		//	BaseController contruller = new Calibration(1);
+			BaseController contruller = new PController(31,49);
 
 			while (!Button.ESCAPE.isDown() && Sensors.getSonarVal() > 20)
 			{
@@ -342,7 +343,65 @@ class PIDController implements BaseController
 
 // ======================================================================
 // ======================================================================
+class PController implements BaseController
+{ 
+	float TARGET = 44;
+	final float P_CONTROL = 2;
+	final float I_CONTROL = 1;
+	final float D_CONTROL = 1;
+	final float BASE_SPEED = 30; 
+	double leftSpeed, rightSpeed; 
+	float integral = 0;
+	// float[] lastErrs = {0, 0, 0};
+	float lastErr = 0; 
+	float deriv = 0; 
+	
+	float sensorData;
+	double middle = 0;
+	double k = 0;
+	double turn = 0;
+	double error = 0;
+	
+	private Motors motors = new Motors();
 
+	//y = mx + b
+	//k = (change in y)/(change in x) 
+	
+	public PController(int black, int white)
+	{
+		middle = (white + black) / 2;
+		
+		double x1,y1,x2,y2;
+		x1 = black - middle;
+		y1 = 1;
+		x2 = white - middle;
+		y2 = -1;
+		
+		k = (y1-y2)/(x1-x2) ;
+		
+	}
+	
+	public void run() 
+	{
+		sensorData = Sensors.getLightSensorVal();
+		
+		error = middle - sensorData; 
+		turn = 20 * k * error;
+				
+		leftSpeed = 50 + turn; 
+		rightSpeed = 50 - turn; 
+		
+		motors.setPower(leftSpeed, rightSpeed);
+	}
+
+	@Override
+	public void finish()
+	{
+		motors.setPower(0, 0);
+		// TODO Auto-generated method stub
+		
+	}
+}
 // ======================================================================
 // ======================================================================
 
