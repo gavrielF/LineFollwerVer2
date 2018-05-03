@@ -394,7 +394,8 @@ class PController implements BaseController
 	
 	public void run() 
 	{
-		sensorData = Sensors.getLightSensorVal();
+		sensorData = Sensors._lightSensor.getLightValue();
+		
 		if((middle - sensorData) == middle - sensorData || (error > 0 && (middle - sensorData) < 0) || (error < 0 && (middle - sensorData) > 0))
 			integral = 0;
 		
