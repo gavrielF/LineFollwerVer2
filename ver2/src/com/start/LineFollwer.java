@@ -45,14 +45,22 @@ public class LineFollwer
 				}
 			});
 
+			
+//			LCD.drawString("cali low", 0, 2);
+//			Utils.waitForEnter();		
+//			int low =  Sensors._lightSensor.getLightValue();
+//			LCD.drawString("cali high", 0, 3);
+//			Utils.waitForEnter();		
+//			int high =  Sensors._lightSensor.getLightValue();
+//			
+//			LCD.drawString("l:" + low+ " h:" + high, 0, 4);
 			Utils.waitForEnter();
-
 			//BaseController contruller = new lightMajer();
 //			BaseController contruller = new regular();
 		//	BaseController contruller = new regular2();
 		//	BaseController contruller = new regularImprove();
 		//	BaseController contruller = new Calibration(1);
-			BaseController contruller = new PController(31,49);
+			BaseController contruller = new PController(30,50);
 
 			while (!Button.ESCAPE.isDown() && Sensors.getSonarVal() > 20)
 			{
@@ -345,22 +353,22 @@ class PIDController implements BaseController
 // ======================================================================
 class PController implements BaseController
 { 
-	float TARGET = 44;
-	final float P_CONTROL = 2;
-	final float I_CONTROL = 1;
-	final float D_CONTROL = 1;
-	final float BASE_SPEED = 30; 
 	double leftSpeed, rightSpeed; 
-	float integral = 0;
-	// float[] lastErrs = {0, 0, 0};
-	float lastErr = 0; 
-	float deriv = 0; 
+	double integral = 0;
+
 	
 	float sensorData;
 	double middle = 0;
-	double k = 0;
+	double kp = 0;
+	double ki = 0;
+	double kd = 0;
 	double turn = 0;
 	double error = 0;
+	
+	double lastError  = 0;
+	double derivative  = 0;
+	
+	int tp = 25;
 	
 	private Motors motors = new Motors();
 
@@ -377,21 +385,36 @@ class PController implements BaseController
 		x2 = white - middle;
 		y2 = -1;
 		
-		k = (y1-y2)/(x1-x2) ;
+		kp = 6;//(100/Math.max(x1, x2));//17 * (y1-y2)/(x1-x2) ;
+		Logger.getInstance().logDebug("kp is: " + kp);
+		ki = 0;
 		
+		kd = 0;
 	}
 	
 	public void run() 
 	{
 		sensorData = Sensors.getLightSensorVal();
+		if((middle - sensorData) == middle - sensorData || (error > 0 && (middle - sensorData) < 0) || (error < 0 && (middle - sensorData) > 0))
+			integral = 0;
 		
 		error = middle - sensorData; 
-		turn = 20 * k * error;
-				
-		leftSpeed = 50 + turn; 
-		rightSpeed = 50 - turn; 
+		
+		integral = integral + error;
+		
+		derivative = error - lastError;
+		
+		turn = (kp * error) + (ki * integral) + (kd*derivative );
+		Logger.getInstance().logDebug("turn=" + turn);
+		//turn = turn/100  ;
+		
+		
+		leftSpeed = tp + turn; 
+		rightSpeed = tp - turn; 
 		
 		motors.setPower(leftSpeed, rightSpeed);
+		
+		lastError = error ;
 	}
 
 	@Override

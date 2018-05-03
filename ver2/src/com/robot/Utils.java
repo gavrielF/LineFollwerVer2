@@ -17,7 +17,7 @@ public class Utils
 	{
 		try
 		{
-			LCD.drawString("Wait for Enter ", 0, 4);	
+			//LCD.drawString("Wait for Enter ", 0, 4);	
 			Button.ENTER.waitForPressAndRelease();
 			Sound.beep();
 		}
