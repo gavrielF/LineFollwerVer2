@@ -17,75 +17,98 @@ import lejos.nxt.ButtonListener;
 import lejos.nxt.LCD;
 import lejos.nxt.Sound;
 
-public class LineFollwer
-{
+public class LineFollwer {
 
-	public static void main(String[] args)
+	public static BaseController contruller = null;
+
+	public static void main(String[] args) 
 	{
 		try
 		{
 			LCD.clear();
-			LCD.drawString("Hello", 0, 1);
-			Sound.beep();
-
-			Button.LEFT.addButtonListener(new ButtonListener() {
-
-				@Override
-				public void buttonReleased(Button b)
-				{
-					// TODO Auto-generated method stub
-					LCD.drawString("->", 0, 3);
-				}
-
-				@Override
-				public void buttonPressed(Button b)
-				{
-					// TODO Auto-generated method stub
-
-				}
-			});
-
-			
-//			LCD.drawString("cali low", 0, 2);
-//			Utils.waitForEnter();		
-//			int low =  Sensors._lightSensor.getLightValue();
-//			LCD.drawString("cali high", 0, 3);
-//			Utils.waitForEnter();		
-//			int high =  Sensors._lightSensor.getLightValue();
-//			
-//			LCD.drawString("l:" + low+ " h:" + high, 0, 4);
+			LCD.drawString("cali low", 0, 2);
 			Utils.waitForEnter();
-			//BaseController contruller = new lightMajer();
-//			BaseController contruller = new regular();
-		//	BaseController contruller = new regular2();
-		//	BaseController contruller = new regularImprove();
-		//	BaseController contruller = new Calibration(1);
-			BaseController contruller = new PController(30,50);
+			int low = Sensors._lightSensor.getLightValue();
+			LCD.drawString("cali high", 0, 3);
+			Utils.waitForEnter();
+			int high = Sensors._lightSensor.getLightValue();
+			LCD.drawString("l:" + low + " h:" + high, 0, 4);
+			
+			LCD.drawString("Next..", 0, 5);
+			Utils.waitForEnter();		
+			
+			showOptions(low, high);	
+			
+			// contruller = new lightMajer();
+			// contruller = new Calibration(1);	
+		
 
-			while (!Button.ESCAPE.isDown() && Sensors.getSonarVal() > 20)
-			{
+			while (!Button.ESCAPE.isDown() && Sensors.getSonarVal() > 20) {
 				contruller.run();
 			}
 
 			contruller.finish();
 
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			Logger.getInstance().logDebug("main - end get exception: " + e.getMessage());
-		}
-		finally
-		{
+		} finally {
 			Logger.getInstance().write();
 		}
+	}
+	
+	private static void showOptions(int low, int high)
+	{
+		Button.RIGHT.addButtonListener(new ButtonListener() {
+			@Override
+			public void buttonReleased(Button b) {
+				LCD.clear();
+				LCD.drawString("noPid", 0, 2);
+				LCD.drawString("-->PIDController", 0, 3);		
+				LCD.drawString("Enter to start", 0, 4);
+				contruller = new PIDController(low, high);
+			}
+
+			@Override
+			public void buttonPressed(Button b) {		
+			}
+		});
+		
+		Button.LEFT.addButtonListener(new ButtonListener() {
+			@Override
+			public void buttonReleased(Button b) {
+				LCD.clear();
+				LCD.drawString("-->noPid", 0, 2);
+				LCD.drawString("PIDController", 0, 3);		
+				LCD.drawString("Enter to start", 0, 4);
+				contruller = new noPid(low, high);
+			}
+
+			@Override
+			public void buttonPressed(Button b) {		
+			}
+		});
+		
+		//default
+		contruller = new noPid(low, high);
+	
+		LCD.clear();
+		LCD.drawString("-->noPid", 0, 2);
+		LCD.drawString("PIDController", 0, 3);		
+		LCD.drawString("Enter to start", 0, 4);
+		
+		while (!Button.ENTER.isDown()) 
+		{
+			
+		}
+		LCD.clear();
+		LCD.drawString("Start..", 0, 2);
 	}
 
 }
 
 // ======================================================================
 // ======================================================================
-interface BaseController
-{
+interface BaseController {
 	void run();
 
 	void finish();
@@ -93,12 +116,10 @@ interface BaseController
 
 // ======================================================================
 // ======================================================================
-class lightMajer implements BaseController
-{
+class lightMajer implements BaseController {
 	float sensorData;
 
-	public void run()
-	{
+	public void run() {
 		LCD.clear();
 		sensorData = Sensors.getLightSensorVal();
 		LCD.drawString("majer: " + sensorData, 0, 2);
@@ -106,257 +127,55 @@ class lightMajer implements BaseController
 	}
 
 	@Override
-	public void finish()
-	{
+	public void finish() {
 
 	}
 }
 
 // ======================================================================
 // ======================================================================
-class regular implements BaseController
-{
-	private Motors	motors	= new Motors();
-
-	int				light;
-	int				_middle	= 43;
-
-	public regular()
-	{
-	}
-
-	public regular(int middle)
-	{
-		_middle = middle;
-	}
-
-	public void run()
-	{
-		light = Sensors.getLightSensorVal();
-		if (light > _middle)
-		{
-			motors.setPower(100, 50);
-		} else
-		{
-			motors.setPower(50, 100);
-		}
-	}
-
-	@Override
-	public void finish()
-	{
-	}
-}
-
-// ======================================================================
-// ======================================================================
-class regular2 implements BaseController
-{ 
+class noPid implements BaseController {
 	private Motors motors = new Motors();
 
-	int light;
-	int error;
-	int array[] = {30, 31, 37, 40, 44, 46, 48};
-	
-	public void run() 
-	{
-		light = Sensors.getLightSensorVal();
-		error = array[3] - light;
-		
-		if( light <= array[0])
-		{
-			motors.setPower(50, 10);
-		}
-		else if( light >=  array[6])
-		{
+	private int _light;
+	private int _error;
+	private int _black, _white;
+	private int _middle;
+
+	int array[] = { 30, 32, 33, 39, 42, 44, 45 };
+
+	public noPid(int black, int white) {
+		_black = black;
+		_white = white;
+		_middle = (_black + _white) / 2;
+	}
+
+	public void run() {
+		_light = Sensors.getLightSensorVal();
+		_error = _middle - _light;
+
+		if (_light <= _black + 1) {
 			motors.setPower(10, 50);
-		}		
-		else
-		{
-			motors.setPower(70 + 1.6f*error , 70 - 1.6f*error);
-		}								
-	}
-
-	@Override
-	public void finish()
-	{		
-	}
-}
-
-// ======================================================================
-// ======================================================================
-class regularImprove implements BaseController
-{ 
-	private Motors motors = new Motors();
-	int light;
-	int array[] = {30, 31, 37, 40, 44, 46, 48};
-	
-	public void run() 
-	{
-		light = Sensors.getLightSensorVal();
-		
-		if( light <= array[0])
-		{
+		} else if (_light >= _white - 1) {
 			motors.setPower(50, 10);
+
+		} else {
+			motors.setPower(70 - 1.6f * _error, 70 + 1.6f * _error);
 		}
-		
-		else if( light > array[0]  &&  light <  array[1])
-		{
-			motors.setPower(80, 20);
-		}
-		else if(light >= array[1] && light < array[2])
-		{
-			motors.setPower(100, 70);
-		}	
-		
-		//
-		else if(light >= array[2] && light <= array[3])
-		{
-			motors.setPower(100, 95);
-		}			
-		else if( light > array[3] && light < array[4])
-		{
-			motors.setPower(95, 100);
-		}
-		
-		else if( light >= array[4] && light <= array[5])
-		{
-			motors.setPower(70, 100);
-		}
-		else if( light > array[5] && light < array[6])
-		{
-			motors.setPower(20, 80);
-		}
-		
-		else if( light >=  array[6])
-		{
-			motors.setPower(10, 50);
-		}
-			
 	}
 
 	@Override
-	public void finish()
-	{
-		// TODO Auto-generated method stub
-		
+	public void finish() {
+		motors.setPower(0, 0);
 	}
 }
 
 // ======================================================================
 // ======================================================================
-class regularImproveSlow implements BaseController
-{ 
-	private Motors motors = new Motors();
-	
-	int light;
-	int array[] = {32, 37, 39, 42, 44, 46, 48};
-	
-	public void run() 
-	{
-		light = Sensors.getLightSensorVal();
-		
-		if( light <= array[0])
-		{
-			motors.setPower(50, 10);
-		}
-		
-		else if( light > array[0]  &&  light <  array[1])
-		{
-			motors.setPower(70, 20);
-		}
-		else if(light >= array[1] && light < array[2])
-		{
-			motors.setPower(90, 70);
-		}	
-		
-		//
-		else if(light >= array[2] && light <= array[3])
-		{
-			motors.setPower(100, 95);
-		}			
-		else if( light > array[3] && light < array[4])
-		{
-			motors.setPower(95, 100);
-		}
-		
-		else if( light >= array[4] && light <= array[5])
-		{
-			motors.setPower(70, 90);
-		}
-		else if( light > array[5] && light < array[6])
-		{
-			motors.setPower(20, 70);
-		}
-		
-		else if( light >=  array[6])
-		{
-			motors.setPower(10, 50);
-		}
-			
-	}
-
-	@Override
-	public void finish()
-	{
-		// TODO Auto-generated method stub
-		
-	}
-}
-
-
-// ======================================================================
-// ======================================================================
-class PIDController implements BaseController
-{ 
-	float TARGET = 44;
-	final float P_CONTROL = 2;
-	final float I_CONTROL = 1;
-	final float D_CONTROL = 1;
-	final float BASE_SPEED = 30; 
-	float leftSpeed, rightSpeed; 
-	float sensorData;
-	float integral = 0;
-	// float[] lastErrs = {0, 0, 0};
-	float lastErr = 0; 
-	float deriv = 0; 
-	
-	private Motors motors = new Motors();
-
-	public PIDController(int mi)
-	{
-		TARGET = (float)mi;
-	}
-	
-	public void run() 
-	{
-		sensorData = Sensors.getLightSensorVal();
-		
-		float err = TARGET - sensorData; 
-		
-		leftSpeed = 100 + P_CONTROL * err; 
-		rightSpeed = 100 - P_CONTROL * err; 
-		
-		motors.setPower(leftSpeed, rightSpeed);
-	}
-
-	@Override
-	public void finish()
-	{
-		// TODO Auto-generated method stub
-		
-	}
-}
-	
-
-// ======================================================================
-// ======================================================================
-class PController implements BaseController
-{ 
-	double leftSpeed, rightSpeed; 
+class PIDController implements BaseController {
+	double leftSpeed, rightSpeed;
 	double integral = 0;
 
-	
 	float sensorData;
 	double middle = 0;
 	double kp = 0;
@@ -364,106 +183,78 @@ class PController implements BaseController
 	double kd = 0;
 	double turn = 0;
 	double error = 0;
-	
-	double lastError  = 0;
-	double derivative  = 0;
-	
-	int tp = 40;
-	
+
+	double lastError = 0;
+	double derivative = 0;
+
+	int tp = 70;
+
 	private Motors motors = new Motors();
 
-	//y = mx + b
-	//k = (change in y)/(change in x) 
-	
-	public PController(int black, int white)
-	{
+	public PIDController(int black, int white) {
 		middle = (white + black) / 2;
-		
-		double x1,y1,x2,y2;
-		x1 = black - middle;
-		y1 = 1;
-		x2 = white - middle;
-		y2 = -1;
-		
-		
-		double Kc = 230;
-		double pc = 0.4;
-		double dt = 0.050;
-		
-		kp =  (0.60)*(Kc); //
-		
-		Logger.getInstance().logDebug("kp is: " + kp);
-		
+
+		double Kc = 250;
+		double pc = 0.1;
+		double dt = 0.020;
+
+		kp = (0.67) * (Kc);
+
 		ki = (2 * (kp) * (dt)) / (pc);
-		
-		kd = ((kp) * (pc)) / ((8) * (dt)) ;
+
+		kd = ((kp) * (pc)) / ((8) * (dt));
 	}
-	
-	public void run() 
-	{
+
+	public void run() {
 		sensorData = Sensors._lightSensor.getLightValue();
-		
-		if((middle - sensorData) == middle - sensorData || (error > 0 && (middle - sensorData) < 0) || (error < 0 && (middle - sensorData) > 0))
+
+		if ((middle - sensorData) == middle - sensorData || (error > 0 && (middle - sensorData) < 0)
+				|| (error < 0 && (middle - sensorData) > 0))
 			integral = 0;
-		
-		error = middle - sensorData; 
-		
+
+		error = middle - sensorData;
+
 		integral = integral + error;
-		
+
 		derivative = error - lastError;
-		
-		turn = (kp * error) + (ki * integral) + (kd*derivative );
-		turn = turn/100;
-		Logger.getInstance().logDebug("turn=" + turn);
-		//turn = turn/100  ;
-		
-		
-		leftSpeed = tp - turn; 
-		rightSpeed = tp + turn; 
-		
+
+		turn = (kp * error) + (ki * integral) + (kd * derivative);
+		turn = turn / 100;
+
+		leftSpeed = tp - turn;
+		rightSpeed = tp + turn;
+
 		motors.setPower(leftSpeed, rightSpeed);
-		
-		lastError = error ;
+
+		lastError = error;
 	}
 
 	@Override
-	public void finish()
-	{
+	public void finish() {
 		motors.setPower(0, 0);
-		// TODO Auto-generated method stub
-		
 	}
 }
-// ======================================================================
-// ======================================================================
 
 // ======================================================================
 // ======================================================================
+class Calibration implements BaseController {
+	private Motors motors = new Motors();
+	private List<Integer> _list = new ArrayList<Integer>();
+	final String fileName = "temp.txt";
+	int _kind;
 
-// ======================================================================
-// ======================================================================
-class Calibration implements BaseController
-{
-	private Motors			motors		= new Motors();
-	private List<Integer>	_list		= new ArrayList<Integer>();
-	final String			fileName	= "temp.txt";
-	int						_kind;
-
-	public Calibration(int kind)
-	{
+	public Calibration(int kind) {
 		_kind = kind;
 	}
 
-	public void run()
-	{
+	public void run() {
 
-		if (_list.size() > 3000)
-		{
+		if (_list.size() > 3000) {
 			Sound.beep();
 			motors.setPower(0, 0);
 			return;
 		} else
-			motors.setPower(10, 10);
+			motors.setPower(15, 15);
 
 		if (_kind == 1)
 			_list.add(Sensors.getLightSensorVal());
@@ -472,53 +263,38 @@ class Calibration implements BaseController
 	}
 
 	@Override
-	public void finish()
-	{
+	public void finish() {
 		motors.setPower(0, 0);
 		printToFile();
 	}
-	
-	public void printToFile()
-	{
+
+	public void printToFile() {
 		FileOutputStream fileStream = null;
-		try
-		{
+		try {
 			fileStream = new FileOutputStream(new File("TestCali42.txt"));
-		}
-		catch (Exception e)
-		{
+		} catch (Exception e) {
 			LCD.drawString("Can't make a file", 0, 0);
 			System.exit(1);
 		}
 
 		DataOutputStream dataStream = new DataOutputStream(fileStream);
 
-		for (int i = 0; i < _list.size(); i++)
-		{
-			try
-			{
+		for (int i = 0; i < _list.size(); i++) {
+			try {
 				dataStream.writeBytes(String.valueOf(_list.get(i)));
 				dataStream.writeBytes(" ");
 				fileStream.flush();
-			}
-			catch (IOException e)
-			{
+			} catch (IOException e) {
 				LCD.drawString("Can't write to the file", 0, 1);
 				System.exit(1);
 			}
 		}
 
-		try
-		{
+		try {
 			fileStream.close();
-		}
-		catch (IOException e)
-		{
+		} catch (IOException e) {
 			LCD.drawString("Can't save the file", 0, 1);
 			System.exit(1);
 		}
-
-		Button.waitForAnyPress();
-
 	}
 }
