@@ -385,7 +385,8 @@ class PController implements BaseController
 		x2 = white - middle;
 		y2 = -1;
 		
-		kp = 6;//(100/Math.max(x1, x2));//17 * (y1-y2)/(x1-x2) ;
+		
+		kp = 2;
 		Logger.getInstance().logDebug("kp is: " + kp);
 		ki = 0;
 		
@@ -410,8 +411,8 @@ class PController implements BaseController
 		//turn = turn/100  ;
 		
 		
-		leftSpeed = tp + turn; 
-		rightSpeed = tp - turn; 
+		leftSpeed = tp - turn; 
+		rightSpeed = tp + turn; 
 		
 		motors.setPower(leftSpeed, rightSpeed);
 		
@@ -455,7 +456,7 @@ class Calibration implements BaseController
 			motors.setPower(0, 0);
 			return;
 		} else
-			motors.setPower(20, 20);
+			motors.setPower(10, 10);
 
 		if (_kind == 1)
 			_list.add(Sensors.getLightSensorVal());

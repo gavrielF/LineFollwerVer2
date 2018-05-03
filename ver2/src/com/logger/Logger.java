@@ -115,13 +115,13 @@ public final class Logger
 
 	public void logDebug(String msg)
 	{
-		if(m_list.size() < 2000)
+		if(m_list.size() < 500)
 			m_list.add("Debug ---> " + msg + "\r\n");
 	}
 
 	public void logDebug(String msg, int num)
 	{
-		if(m_list.size() < 2000)
+		if(m_list.size() < 500)
 			m_list.add("Debug ---> msg: " + msg + " Num: " + num + "\r\n");
 	}
 
