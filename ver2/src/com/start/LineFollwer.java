@@ -368,7 +368,7 @@ class PController implements BaseController
 	double lastError  = 0;
 	double derivative  = 0;
 	
-	int tp = 25;
+	int tp = 40;
 	
 	private Motors motors = new Motors();
 
@@ -386,11 +386,11 @@ class PController implements BaseController
 		y2 = -1;
 		
 		
-		kp = 2;
+		kp = 200;
 		Logger.getInstance().logDebug("kp is: " + kp);
-		ki = 0;
+		ki = 8;
 		
-		kd = 0;
+		kd = 400;
 	}
 	
 	public void run() 
@@ -407,6 +407,7 @@ class PController implements BaseController
 		derivative = error - lastError;
 		
 		turn = (kp * error) + (ki * integral) + (kd*derivative );
+		turn = turn/100;
 		Logger.getInstance().logDebug("turn=" + turn);
 		//turn = turn/100  ;
 		
