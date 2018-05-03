@@ -386,11 +386,17 @@ class PController implements BaseController
 		y2 = -1;
 		
 		
-		kp = 200;
-		Logger.getInstance().logDebug("kp is: " + kp);
-		ki = 8;
+		double Kc = 200;
+		double pc = 0.4;
+		double dt = 0.017;
 		
-		kd = 400;
+		kp =  (0.60)*(Kc); //
+		
+		Logger.getInstance().logDebug("kp is: " + kp);
+		
+		ki = (2 * (kp) * (dt)) / (pc);
+		
+		kd = ((kp) * (pc)) / ((8) * (dt)) ;
 	}
 	
 	public void run() 
