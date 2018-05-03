@@ -386,9 +386,9 @@ class PController implements BaseController
 		y2 = -1;
 		
 		
-		double Kc = 200;
+		double Kc = 230;
 		double pc = 0.4;
-		double dt = 0.017;
+		double dt = 0.050;
 		
 		kp =  (0.60)*(Kc); //
 		
