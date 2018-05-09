@@ -15,10 +15,10 @@ public class LineFollwer
 
 	public static BaseController contruller = null;
 	public static controllers _factoryControlls = new controllers();
-	
-	
 	public static int s_low = 0;
 	public static int s_high = 0;
+	
+	private static int i = 0;
 	
 	public static void main(String[] args) 
 	{
@@ -61,15 +61,12 @@ public class LineFollwer
 	}
 
 	private static void showOptions()
-	{
+	{			
 		Button.RIGHT.addButtonListener(new ButtonListener() {
 			@Override
 			public void buttonReleased(Button b) {
-				LCD.clear();
-				LCD.drawString("noPid", 0, 2);
-				LCD.drawString("-->PIDController", 0, 3);		
-				LCD.drawString("Enter to start", 0, 4);
-				contruller = _factoryControlls.getShape("PID", s_low, s_high);
+				i = i + 1;
+				showSelection(i);
 			}
 
 			@Override
@@ -80,32 +77,56 @@ public class LineFollwer
 		Button.LEFT.addButtonListener(new ButtonListener() {
 			@Override
 			public void buttonReleased(Button b) {
-				LCD.clear();
-				LCD.drawString("-->noPid", 0, 2);
-				LCD.drawString("PIDController", 0, 3);		
-				LCD.drawString("Enter to start", 0, 4);
-				contruller = _factoryControlls.getShape("noPID" ,s_low, s_high);
+				i = i - 1;
+				showSelection(i);
 			}
 
 			@Override
 			public void buttonPressed(Button b) {		
 			}
-		});
-		
-		//default
-		contruller = _factoryControlls.getShape("noPID" ,s_low, s_high);
-	
-		LCD.clear();
-		LCD.drawString("-->noPid", 0, 2);
-		LCD.drawString("PIDController", 0, 3);		
-		LCD.drawString("Enter to start", 0, 4);
-		
-		while (!Button.ENTER.isDown()) 
-		{
+		});	
 			
-		}
+		showSelection(0);
+		
+		while (!Button.ENTER.isDown()) { }
+		
 		LCD.clear();
 		LCD.drawString("Start..", 0, 2);
+	}
+	
+	private static void showSelection(int i)
+	{
+		i = i%4; // 0 or 1 the number of controller we want
+		if (i<0) 
+			i += 4;
+		
+		LCD.clear();
+		LCD.drawString("noPid", 2, 2);
+		LCD.drawString("noPid-WithOdey", 2, 3);
+		LCD.drawString("PIDController", 2, 4);		
+		LCD.drawString("PID-WithOdey", 2, 5);
+		LCD.drawString("{Enter to start}", 0, 6);
+		
+		LCD.drawString("->", 0, i+2);
+		
+		switch (i)
+		{
+			case 0:
+				contruller = _factoryControlls.getShape("noPID" ,s_low, s_high);
+				break;
+			case 1:
+				contruller = _factoryControlls.getShape("noPID-odey" ,s_low, s_high);
+				break;
+			case 2:
+				contruller = _factoryControlls.getShape("PID", s_low, s_high);
+				break;
+			case 3:
+				contruller = _factoryControlls.getShape("PID-odey", s_low, s_high);
+				break;
+			default:
+				LCD.drawString("error", 0, 4);
+				break;
+		}
 	}
 
 }

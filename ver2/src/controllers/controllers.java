@@ -30,9 +30,17 @@ public class controllers
 	      }		
 	      if(shapeType.equalsIgnoreCase("noPID"))
 	      {
-	         return new noPid(black, white);
-	         
-	      } else if(shapeType.equalsIgnoreCase("PID"))
+	         return new noPid(black, white);         
+	      }
+	      else if(shapeType.equalsIgnoreCase("noPID-odey"))
+	      {
+		         return new noPid(black, white);	         
+		  } 
+	      else if(shapeType.equalsIgnoreCase("PID"))
+	      {
+	    	  return new PIDController(black, white); 
+	      }
+	      else if(shapeType.equalsIgnoreCase("PID-odey"))
 	      {
 	    	  return new PIDController(black, white);
 	         
