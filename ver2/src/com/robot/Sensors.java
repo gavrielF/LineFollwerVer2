@@ -16,7 +16,7 @@ public class Sensors
 		return _lightSensor.readValue();
 	}
 	
-	public static int getLightSensorVal2()
+	public static int getLightSensorVal_normal()
 	{
 		return _lightSensor.getNormalizedLightValue();
 	}

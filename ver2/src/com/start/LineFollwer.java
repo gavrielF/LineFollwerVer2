@@ -10,53 +10,69 @@ import java.util.List;
 import com.logger.*;
 import com.robot.Motors;
 import com.robot.Sensors;
+import com.robot.TachoPose;
 import com.robot.Utils;
 
 import lejos.nxt.Button;
 import lejos.nxt.ButtonListener;
 import lejos.nxt.LCD;
+import lejos.nxt.LightSensor;
 import lejos.nxt.Sound;
+import lejos.nxt.UltrasonicSensor;
+import lejos.robotics.RegulatedMotor;
+import lejos.robotics.navigation.DifferentialPilot;
+import lejos.util.PilotProps;
+import lejos.util.Stopwatch;
 
-public class LineFollwer {
+public class LineFollwer 
+{
 
 	public static BaseController contruller = null;
-
+	
+	public static int s_low = 0;
+	public static int s_high = 0;
+	
 	public static void main(String[] args) 
 	{
 		try
-		{
-			LCD.clear();
-			LCD.drawString("cali low", 0, 2);
-			Utils.waitForEnter();
-			int low = Sensors._lightSensor.getLightValue();
-			LCD.drawString("cali high", 0, 3);
-			Utils.waitForEnter();
-			int high = Sensors._lightSensor.getLightValue();
-			LCD.drawString("l:" + low + " h:" + high, 0, 4);
+		{		
+			//get low and high
+			getHighAndLow();
+			//select the controler
+			showOptions();	
 			
-			LCD.drawString("Next..", 0, 5);
-			Utils.waitForEnter();		
-			
-			showOptions(low, high);	
-			
-			// contruller = new lightMajer();
-			// contruller = new Calibration(1);	
-		
-
-			while (!Button.ESCAPE.isDown() && Sensors.getSonarVal() > 20) {
+			//while loog 		
+			while (!Button.ESCAPE.isDown() && Sensors.getSonarVal() > 20)
 				contruller.run();
-			}
-
+			
+			//finish the controller task
 			contruller.finish();
-
-		} catch (Exception e) {
+		} 
+		catch (Exception e) 
+		{
 			Logger.getInstance().logDebug("main - end get exception: " + e.getMessage());
-		} finally {
+		} 
+		finally
+		{
 			Logger.getInstance().write();
 		}
 	}
 	
-	private static void showOptions(int low, int high)
+	private static void getHighAndLow()
+	{
+		LCD.clear();
+		LCD.drawString("cali low", 0, 2);
+		Utils.waitForEnter();
+		s_low = new Integer(Sensors._lightSensor.getLightValue());
+		LCD.drawString("cali high", 0, 3);
+		Utils.waitForEnter();
+		s_high = new Integer(Sensors._lightSensor.getLightValue());
+		LCD.drawString("l:" + s_low + ", h:" + s_high, 0, 4);	
+		LCD.drawString("Next..", 0, 5);
+		Utils.waitForEnter();			
+	}
+
+	private static void showOptions()
 	{
 		Button.RIGHT.addButtonListener(new ButtonListener() {
 			@Override
@@ -65,7 +81,7 @@ public class LineFollwer {
 				LCD.drawString("noPid", 0, 2);
 				LCD.drawString("-->PIDController", 0, 3);		
 				LCD.drawString("Enter to start", 0, 4);
-				contruller = new PIDController(low, high);
+				contruller = new PIDController(s_low, s_high);
 			}
 
 			@Override
@@ -80,7 +96,7 @@ public class LineFollwer {
 				LCD.drawString("-->noPid", 0, 2);
 				LCD.drawString("PIDController", 0, 3);		
 				LCD.drawString("Enter to start", 0, 4);
-				contruller = new noPid(low, high);
+				contruller = new noPid(s_low, s_high);
 			}
 
 			@Override
@@ -89,7 +105,7 @@ public class LineFollwer {
 		});
 		
 		//default
-		contruller = new noPid(low, high);
+		contruller = new noPid(s_low, s_high);
 	
 		LCD.clear();
 		LCD.drawString("-->noPid", 0, 2);
@@ -106,17 +122,20 @@ public class LineFollwer {
 
 }
 
-// ======================================================================
-// ======================================================================
-interface BaseController {
+//======================================================================
+//======================================================================
+interface BaseController 
+{
 	void run();
 
 	void finish();
 }
 
+
 // ======================================================================
 // ======================================================================
-class lightMajer implements BaseController {
+class lightMajer implements BaseController 
+{
 	float sensorData;
 
 	public void run() {
@@ -134,45 +153,60 @@ class lightMajer implements BaseController {
 
 // ======================================================================
 // ======================================================================
-class noPid implements BaseController {
+class noPid implements BaseController 
+{
 	private Motors motors = new Motors();
 
 	private int _light;
 	private int _error;
 	private int _black, _white;
 	private int _middle;
+	
+	private MovePosition _movePosition = null;
 
-	int array[] = { 30, 32, 33, 39, 42, 44, 45 };
-
-	public noPid(int black, int white) {
+	public noPid(int black, int white) 
+	{
 		_black = black;
 		_white = white;
 		_middle = (_black + _white) / 2;
+		
+		//for odometry
+		_movePosition = new MovePosition(motors, 100);
 	}
 
-	public void run() {
+	public void run() 
+	{
 		_light = Sensors.getLightSensorVal();
 		_error = _middle - _light;
 
-		if (_light <= _black + 1) {
+		if (_light <= _black + 1) 
+		{
 			motors.setPower(10, 50);
-		} else if (_light >= _white - 1) {
+		} 
+		else if (_light >= _white - 1) 
+		{
 			motors.setPower(50, 10);
-
-		} else {
-			motors.setPower(70 - 1.6f * _error, 70 + 1.6f * _error);
 		}
+		else 
+		{
+			motors.setPower(50 - 1.7f * _error, 50 + 1.7f * _error);
+		}
+	
+		_movePosition.doTask();
+		
 	}
 
 	@Override
 	public void finish() {
 		motors.setPower(0, 0);
+		_movePosition.printToFile();
 	}
 }
 
 // ======================================================================
 // ======================================================================
-class PIDController implements BaseController {
+class PIDController implements BaseController
+{
 	double leftSpeed, rightSpeed;
 	double integral = 0;
 
@@ -187,7 +221,7 @@ class PIDController implements BaseController {
 	double lastError = 0;
 	double derivative = 0;
 
-	int tp = 70;
+	int tp = 65;
 
 	private Motors motors = new Motors();
 
@@ -195,26 +229,27 @@ class PIDController implements BaseController {
 		middle = (white + black) / 2;
 
 		double Kc = 250;
-		double pc = 0.1;
+		double pc = 0.2;
 		double dt = 0.020;
 
-		kp = (0.67) * (Kc);
+		kp = (0.60) * (Kc);
 
 		ki = (2 * (kp) * (dt)) / (pc);
 
 		kd = ((kp) * (pc)) / ((8) * (dt));
 	}
 
-	public void run() {
+	public void run() 
+	{
 		sensorData = Sensors._lightSensor.getLightValue();
 
-		if ((middle - sensorData) == middle - sensorData || (error > 0 && (middle - sensorData) < 0)
+		if (middle == sensorData || (error > 0 && (middle - sensorData) < 0)
 				|| (error < 0 && (middle - sensorData) > 0))
 			integral = 0;
 
 		error = middle - sensorData;
 
-		integral = integral + error;
+		integral = (2/3) * integral + error;
 
 		derivative = error - lastError;
 
@@ -230,17 +265,19 @@ class PIDController implements BaseController {
 	}
 
 	@Override
-	public void finish() {
+	public void finish() 
+	{
 		motors.setPower(0, 0);
 	}
 }
 
 // ======================================================================
 // ======================================================================
-class Calibration implements BaseController {
+class Calibration implements BaseController 
+{
 	private Motors motors = new Motors();
 	private List<Integer> _list = new ArrayList<Integer>();
-	final String fileName = "temp.txt";
+	final String fileName = "Calibration.txt";
 	int _kind;
 
 	public Calibration(int kind) {
@@ -259,7 +296,7 @@ class Calibration implements BaseController {
 		if (_kind == 1)
 			_list.add(Sensors.getLightSensorVal());
 		else
-			_list.add(Sensors.getLightSensorVal2());
+			_list.add(Sensors.getLightSensorVal_normal());
 	}
 
 	@Override
@@ -268,10 +305,11 @@ class Calibration implements BaseController {
 		printToFile();
 	}
 
-	public void printToFile() {
+	public void printToFile() 
+	{
 		FileOutputStream fileStream = null;
 		try {
-			fileStream = new FileOutputStream(new File("TestCali42.txt"));
+			fileStream = new FileOutputStream(new File(fileName));
 		} catch (Exception e) {
 			LCD.drawString("Can't make a file", 0, 0);
 			System.exit(1);
@@ -293,6 +331,88 @@ class Calibration implements BaseController {
 		try {
 			fileStream.close();
 		} catch (IOException e) {
+			LCD.drawString("Can't save the file", 0, 1);
+			System.exit(1);
+		}
+	}
+}
+
+//======================================================================
+//======================================================================
+class MovePosition
+{
+	private Motors _motors = null;
+	
+	private Stopwatch watch = new Stopwatch();
+	
+	private TachoPose lastTachoPose = new TachoPose();
+	
+	private List<Float> _listx = new ArrayList<Float>();
+	private List<Float> _listy = new ArrayList<Float>();
+	
+	private int _elapsed = 400;
+	
+	final String fileName = "OdyPoints.txt";
+
+	public MovePosition(Motors motors, int elapsed) 
+	{
+		_motors = motors;
+		_elapsed = elapsed;
+	}
+	
+	public void doTask()
+	{
+		//update the current position
+		_motors.setPose(lastTachoPose);
+				
+		//take position every 1ms
+		if(watch.elapsed() > _elapsed)
+		{		
+			lastTachoPose = _motors.getPose();
+			_listx.add(lastTachoPose.getX());
+			_listy.add(lastTachoPose.getY());
+			watch.reset();
+		}
+	}
+
+	public void printToFile() 
+	{
+		FileOutputStream fileStream = null;
+		try 
+		{
+			fileStream = new FileOutputStream(new File(fileName));
+		} 
+		catch (Exception e)
+		{
+			LCD.drawString("Can't make a file", 0, 0);
+			System.exit(1);
+		}
+
+		DataOutputStream dataStream = new DataOutputStream(fileStream);
+
+		for (int i = 0; i < _listx.size(); i++) 
+		{
+			try
+			{
+				dataStream.writeBytes("(");
+				dataStream.writeBytes(String.valueOf(_listx.get(i)));
+				dataStream.writeBytes(", ");
+				dataStream.writeBytes(String.valueOf(_listy.get(i)));
+				dataStream.writeBytes("), ");
+				fileStream.flush();
+			} 
+			catch (IOException e)
+			{
+				LCD.drawString("Can't write to the file", 0, 1);
+				System.exit(1);
+			}
+		}
+		try 
+		{
+			fileStream.close();
+		} 
+		catch (IOException e)
+		{
 			LCD.drawString("Can't save the file", 0, 1);
 			System.exit(1);
 		}

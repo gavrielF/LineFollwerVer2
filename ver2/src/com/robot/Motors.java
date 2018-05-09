@@ -42,8 +42,6 @@ public class Motors
 	
 	public TachoPose getPose() 
 	{
-		// TODO Auto-generated method stub
-
 		int lsamp = getLeftCount();
 		int rsamp = getRightCount();
 
@@ -80,17 +78,18 @@ public class Motors
 	    return normalized <= 3.142 ? normalized : normalized - TWO_PI;
 	}
 	
-	public void setPose(TachoPose aPose) {
-		// TODO Auto-generated method stub
-
+	public void setPose(TachoPose aPose) 
+	{
 		lastTachoPose = aPose;
 	}
 
-	private int getLeftCount() {
+	private int getLeftCount() 
+	{
 		return _parity * _leftMotor.getTachoCount();
 	}
 
-	private int getRightCount() {
+	private int getRightCount() 
+	{
 		return _parity * _rightMotor.getTachoCount();
 	}
 	

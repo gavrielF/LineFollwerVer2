@@ -9,15 +9,13 @@ public class Utils
 
 	public Utils()
 	{
-		// TODO Auto-generated constructor stub
+		
 	}
 
-	
 	public static void waitForEnter()
 	{
 		try
 		{
-			//LCD.drawString("Wait for Enter ", 0, 4);	
 			Button.ENTER.waitForPressAndRelease();
 			Sound.beep();
 		}

@@ -1,64 +1,49 @@
 package controllers;
 
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+//======================================================================
+//======================================================================
+interface BaseController 
+{
+	void run();
 
-import com.robot.Motors;
-import com.robot.Sensors;
-import com.robot.Utils;
-
-import lejos.nxt.Button;
-import lejos.nxt.LCD;
-import lejos.nxt.Sound;
+	void finish();
+}
 
 
-//
-//
-//class workgoor1 implements BaseController
-//{ 
-//	private Motors motors = new Motors();
-//	private Sensors sensor = new Sensors();
-//	int light;
-//	
-//	public void run() 
-//	{
-//		light = sensor.getLightSensorVal();
-//		if(light >= 35 && light <= 46)
-//		{
-//			motors.setPower(80, 80);
-//		}
-//		else if( light < 35 && light > 32)
-//		{
-//			motors.setPower(80, 40);
-//		}
-//		else if( light <= 32)
-//		{
-//			motors.setPower(50, 10);
-//		}
-//		else if( light > 46 && light < 49)
-//		{
-//			motors.setPower(40, 80);
-//		}
-//		else if( light >= 49)
-//		{
-//			motors.setPower(10, 50);
-//		}
-//			
-//	}
-//
-//	@Override
-//	public void finish()
-//	{
-//		// TODO Auto-generated method stub
-//		
-//	}
-//}
-//
-//
+//======================================================================
+//======================================================================
+public class controllers 
+{
+	  
+	   public BaseController getShape(String shapeType)
+	   {
+	      if(shapeType == null)
+	      {
+	         return null;
+	      }		
+	      if(shapeType.equalsIgnoreCase("CIRCLE"))
+	      {
+	         return new Circle();
+	         
+	      } else if(shapeType.equalsIgnoreCase("RECTANGLE"))
+	      {
+	         return new Rectangle();
+	         
+	      } else if(shapeType.equalsIgnoreCase("SQUARE"))
+	      {
+	         return new Square();
+	      }
+	      
+	      return null;
+	   }
+}
+
+
+
+
+
+
+
 //class workgood
 //{ 
 //	private Motors motors = new Motors();
