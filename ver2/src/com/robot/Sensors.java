@@ -7,7 +7,7 @@ import lejos.nxt.UltrasonicSensor;
 public class Sensors
 {
 
-	public static final LightSensor _lightSensor = new LightSensor(SensorPort.S1);
+	public static final LightSensor _lightSensor = new LightSensor(SensorPort.S3);
 	public static final UltrasonicSensor _sonarSensor = new UltrasonicSensor(SensorPort.S4);	
 	
 	

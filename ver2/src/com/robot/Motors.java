@@ -30,9 +30,9 @@ public class Motors
 			_leftMotor.forward();
 		
 		if(right < 0)
-			_leftMotor.backward();
+			_rightMotor.backward();
 		else
-			_leftMotor.forward();
+			_rightMotor.forward();
 		
 		
 		_leftMotor.setPower((int)(Math.abs(left)));
